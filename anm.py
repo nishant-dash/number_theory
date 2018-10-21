@@ -4,28 +4,103 @@ from functools import lru_cache
 import matplotlib.pyplot as plt
 
 
+class primeFactorsObject():
+    def __init__(self):
+        self.largest_factor = 0
+        self.smallest_factor = math.inf
+        self.num_factors = 0
+        self.prime_factors = {}
+        self.number = 1
+
+    def add_factor(self, x):
+        if x not in self.prime_factors:
+            self.prime_factors[x] = 1
+        else:
+            self.prime_factors[x] += 1
+
+        self.num_factors += 1
+
+        if x < self.smallest_factor:
+            self.smallest_factor = x
+
+        if x > self.largest_factor:
+            self.largest_factor = x
+
+        self.number *= x
+
+    def remove_factor(self, x):
+        if x in self.prime_factors:
+            if self.prime_factors[x] == 1:
+                del self.prime_factors[x]
+            else:
+                self.prime_factors[x] -= 1
+        else:
+            return
+
+        self.num_factors -= 1
+        if self.num_factors == 0:
+            return
+
+        pF = list(self.prime_factors)
+        if x == self.smallest_factor:
+            self.smallest_factor = min(pF)
+
+        if x == self.largest_factor:
+            self.largest_factor = max(pF)
+
+        self.number = int(self.number / x)
+
+    def print_info(self):
+        print("Prime factors of ", self.number, " are ")
+        for k, v in self.prime_factors.items():
+            print('  ', k, ' with exponent ', v)
+        print()
+
+
+# uncomment lru_cache code line if factorial is going to be used
+# multiple times with posiibly same input
+# @lru_cache(maxsize=64)
+def factorial(n):
+    f = 1
+    for i in range(n):
+        f *= (i + 1)
+    return f
+
+
 @lru_cache(maxsize=1024)
 def primeFactorization(n):
-
     prime_factors = []
-    # Print the number of two's that divide n
+
     while n % 2 == 0:
         prime_factors.append(2)
-        n = n / 2
+        n >>= 1
 
-    # n must be odd at this point
-    # so a skip of 2 ( i = i + 2) can be used
     for i in range(3, int(math.sqrt(n)) + 1, 2):
-
-        # while i divides n , print i ad divide n
         while n % i == 0:
             prime_factors.append(i)
-            n = n / i
+            n /= i
 
-    # Condition if n is a prime
-    # number greater than 2
     if n > 2:
         prime_factors.append(n)
+
+    return prime_factors
+
+
+@lru_cache(maxsize=1024)
+def primeFactorization_condensed(n):
+    prime_factors = primeFactorsObject()
+
+    while n % 2 == 0:
+        prime_factors.add_factor(2)
+        n >>= 1
+
+    for i in range(3, int(math.sqrt(n)) + 1, 2):
+        while n % i == 0:
+            prime_factors.add_factor(i)
+            n /= i
+
+    if n > 2:
+        prime_factors.add_factor(n)
 
     return prime_factors
 
@@ -43,9 +118,10 @@ def Moebius(n):
     return 0
 
 
-def f(n):
+def char_fn_square(n):
     summation = 0
-    rl = [i for i in range(int(n**0.5))]
+    rl = [i for i in range(int(math.sqrt(n)))]
+
     for i in rl:
         d = i + 1
         if n % (d * d) == 0:
@@ -56,7 +132,7 @@ def f(n):
 
 def testing_fn():
     for i in range(1000):
-        x = f(i)
+        x = char_fn_square(i)
         if (x != 0):
             pf = primeFactorization(i)
             print("f(" + str(i) + ") = ", x, "with prime factors ",
@@ -64,7 +140,7 @@ def testing_fn():
 
     sqs = [i for i in [4, 16, 25, 75, 48]]
     for i in sqs:
-        print(f(i))
+        print(char_fn_square(i))
 
 
 def visualize():
@@ -72,7 +148,7 @@ def visualize():
     factor = 9
 
     for num in range(0, factor * 100):
-        temp = f(num)
+        temp = char_fn_square(num)
         fs.append(temp)
         # print(strs)
 
@@ -92,26 +168,26 @@ def visualize():
 
     plt.show()
 
-# print(primeFactorization.cache_info())
-# print(Moebius.cache_info())
-
-# x = Moebius(1)
-# print(x)
-# x = Moebius(2)
-# print(x)
-# x = Moebius(6)
-# print(x)
-# x = Moebius(100)
-# print(x)
-
 
 def EulerPhi(n):
-    summation = 0
-    for i in range(n):
-        m = i + 1
-        summation += 1 if math.gcd(m, n) == 1 else 0
+    unique_pF = set(primeFactorization(n))
+    prod = n
 
-    return summation
+    for i in unique_pF:
+        prod *= ((i - 1) / (i))
+
+    return int(prod)
+
+
+# deprecated function, too slow
+# def EulerPhi_old(n):
+#     summation = 0
+
+#     for i in range(n):
+#         m = i + 1
+#         summation += 1 if math.gcd(m, n) == 1 else 0
+
+#     return summation
 
 
 # invEP_list = set()
@@ -119,8 +195,4 @@ def EulerPhi(n):
 #     x = i + 1
 #     invEP = 1 / EulerPhi(x)
 #     invEP_list.add(invEP)
-#     print("EulerPhi(" + str(x) + ") = ", invEP)
-
-# print(len(invEP_list))
-
-visualize()
+#     print("InvEulerPhi(" + str(x) + ") = ", invEP)
