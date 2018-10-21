@@ -1,7 +1,9 @@
 import math
-import numpy as np
 from functools import lru_cache
 import matplotlib.pyplot as plt
+import csv
+import webbrowser
+import os
 
 
 class primeFactorsObject():
@@ -143,6 +145,16 @@ def testing_fn():
         print(char_fn_square(i))
 
 
+def EulerPhi(n):
+    unique_pF = set(primeFactorization(n))
+    prod = n
+
+    for i in unique_pF:
+        prod *= ((i - 1) / (i))
+
+    return int(prod)
+
+
 def visualize():
     fs = []
     factor = 9
@@ -169,14 +181,19 @@ def visualize():
     plt.show()
 
 
-def EulerPhi(n):
-    unique_pF = set(primeFactorization(n))
-    prod = n
+def desmos():
+    data = [Moebius(i + 1) for i in range(100)]
+    with open('to_plot.csv', 'w') as csvfile:
+        writer = csv.writer(csvfile)
+        writer.writerow(data)
+    csvfile.close()
+    data = [EulerPhi(i + 1) for i in range(100)]
+    with open('to_plot2.csv', 'w') as csvfile:
+        writer = csv.writer(csvfile)
+        writer.writerow(data)
+    csvfile.close()
 
-    for i in unique_pF:
-        prod *= ((i - 1) / (i))
-
-    return int(prod)
+    webbrowser.open('file://' + os.path.realpath('parabola.html'))
 
 
 # deprecated function, too slow
@@ -196,3 +213,5 @@ def EulerPhi(n):
 #     invEP = 1 / EulerPhi(x)
 #     invEP_list.add(invEP)
 #     print("InvEulerPhi(" + str(x) + ") = ", invEP)
+
+desmos()
